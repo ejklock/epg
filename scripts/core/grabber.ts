@@ -22,6 +22,12 @@ export class Grabber {
     this.grabber = process.env.NODE_ENV === 'test' ? new EPGGrabberMock() : new EPGGrabber()
   }
 
+   correctSiteId(channel:Channel) {
+    if (channel.site_id && channel.site_id.includes('-fhd')) {
+      channel.site_id = channel.site_id.replace('-fhd', '-hd')
+    }
+    return channel
+  }
   async grab(): Promise<{ channels: Collection; programs: Collection }> {
     const taskQueue = new TaskQueue(Promise as PromisyClass, this.options.maxConnections)
 
@@ -50,7 +56,7 @@ export class Grabber {
             }
 
             const _programs = await this.grabber.grab(
-              channel,
+              this.correctSiteId(channel),
               date,
               config,
               (data: GrabCallbackData, error: Error | null) => {
